@@ -23,7 +23,8 @@ def parse_log(path_to_log):
     """
 
     regex_iteration = re.compile('Iteration (\d+)')
-    regex_train_output = re.compile('Train net output #(\d+): (\S+) = ([\.\deE+-]+)')
+    regex_train_output = re.compile('Iteration (\d+), (\S+) = ([\.\deE+-]+)')
+    # regex_train_output = re.compile('Train net output #(\d+): (\S+) = ([\.\deE+-]+)')
     regex_test_output = re.compile('Test net output #(\d+): (\S+) = ([\.\deE+-]+)')
     regex_learning_rate = re.compile('lr = ([-+]?[0-9]*\.?[0-9]+([eE]?[-+]?[0-9]+)?)')
 
@@ -38,7 +39,6 @@ def parse_log(path_to_log):
     logfile_year = extract_seconds.get_log_created_year(path_to_log)
     with open(path_to_log) as f:
         start_time = extract_seconds.get_start_time(f, logfile_year)
-        last_time = start_time
 
         for line in f:
             iteration_match = regex_iteration.search(line)
@@ -55,12 +55,6 @@ def parse_log(path_to_log):
             except ValueError:
                 # Skip lines with bad formatting, for example when resuming solver
                 continue
-
-            # if it's another year
-            if time.month < last_time.month:
-                logfile_year += 1
-                time = extract_seconds.extract_datetime_from_line(line, logfile_year)
-            last_time = time
 
             seconds = (time - start_time).total_seconds()
 
@@ -95,26 +89,27 @@ def parse_line_for_net_output(regex_obj, row, row_dict_list,
 
     output_match = regex_obj.search(line)
     if output_match:
-        if not row or row['NumIters'] != iteration:
-            # Push the last row and start a new one
-            if row:
-                # If we're on a new iteration, push the last row
-                # This will probably only happen for the first row; otherwise
-                # the full row checking logic below will push and clear full
-                # rows
-                row_dict_list.append(row)
-
-            row = OrderedDict([
-                ('NumIters', iteration),
-                ('Seconds', seconds),
-                ('LearningRate', learning_rate)
-            ])
-
-        # output_num is not used; may be used in the future
-        # output_num = output_match.group(1)
         output_name = output_match.group(2)
-        output_val = output_match.group(3)
-        row[output_name] = float(output_val)
+        if output_name == 'loss' or output_name == 'detection_eval':
+            if not row or row['NumIters'] != iteration:
+                # Push the last row and start a new one
+                if row:
+                    # If we're on a new iteration, push the last row
+                    # This will probably only happen for the first row; otherwise
+                    # the full row checking logic below will push and clear full
+                    # rows
+                    row_dict_list.append(row)
+
+                row = OrderedDict([
+                    ('NumIters', iteration),
+                    ('Seconds', seconds),
+                    ('LearningRate', learning_rate)
+                ])
+
+            # output_num is not used; may be used in the future
+            # output_num = output_match.group(1)
+            output_val = output_match.group(3)
+            row[output_name] = float(output_val)
 
     if row and len(row_dict_list) >= 1 and len(row) == len(row_dict_list[0]):
         # The row is full, based on the fact that it has the same number of
@@ -172,7 +167,7 @@ def write_csv(output_filename, dict_list, delimiter, verbose=False):
         dict_writer.writeheader()
         dict_writer.writerows(dict_list)
     if verbose:
-        print 'Wrote %s' % output_filename
+        print('Wrote %s' % output_filename)
 
 
 def parse_args():
@@ -203,7 +198,7 @@ def main():
     args = parse_args()
     train_dict_list, test_dict_list = parse_log(args.logfile_path)
     save_csv_files(args.logfile_path, args.output_dir, train_dict_list,
-                   test_dict_list, delimiter=args.delimiter, verbose=args.verbose)
+                   test_dict_list, delimiter=args.delimiter)
 
 
 if __name__ == '__main__':

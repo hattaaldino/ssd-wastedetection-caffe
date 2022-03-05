@@ -1,7 +1,7 @@
 # The option allows to include in build only selected test files and exclude all others
 # Usage example:
 #  cmake -DBUILD_only_tests="common,net,blob,im2col_kernel"
-set(BUILD_only_tests "" CACHE STRING "Blank or comma-separated list of test files to build without 'test_' prefix and extension")
+set(BUILD_only_tests "" CACHE STRING "Blank or comma-separated list of test files to build without 'test_' prefix and extention")
 caffe_leave_only_selected_tests(test_srcs ${BUILD_only_tests})
 caffe_leave_only_selected_tests(test_cuda ${BUILD_only_tests})
 
@@ -19,11 +19,7 @@ set(the_target test.testbin)
 set(test_args --gtest_shuffle)
 
 if(HAVE_CUDA)
-  set(__cuda_options ${Caffe_COMPILE_DEFS}
-                     ${Caffe_IMPORT_DEFINITION})
-  add_definitions(${__cuda_options})
   caffe_cuda_compile(test_cuda_objs ${test_cuda})
-  remove_definitions(${__cuda_options})
   list(APPEND test_srcs ${test_cuda_objs} ${test_cuda})
 else()
   list(APPEND test_args --gtest_filter="-*GPU*")
@@ -34,10 +30,6 @@ add_executable(${the_target} EXCLUDE_FROM_ALL ${test_srcs})
 target_link_libraries(${the_target} gtest ${Caffe_LINK})
 caffe_default_properties(${the_target})
 caffe_set_runtime_directory(${the_target} "${PROJECT_BINARY_DIR}/test")
-
-if(MSVC AND COPY_PREREQUISITES)
-  caffe_copy_prerequisites(${the_target} USE_HARD_LINKS)
-endif()
 
 # ---[ Adding runtest
 add_custom_target(runtest COMMAND ${the_target} ${test_args}

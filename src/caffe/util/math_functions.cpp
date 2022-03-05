@@ -98,6 +98,7 @@ void caffe_copy(const int N, const Dtype* X, Dtype* Y) {
   }
 }
 
+template void caffe_copy<bool>(const int N, const bool* X, bool* Y);
 template void caffe_copy<int>(const int N, const int* X, int* Y);
 template void caffe_copy<unsigned int>(const int N, const unsigned int* X,
     unsigned int* Y);
@@ -197,16 +198,6 @@ void caffe_sqr<double>(const int n, const double* a, double* y) {
 }
 
 template <>
-void caffe_sqrt<float>(const int n, const float* a, float* y) {
-  vsSqrt(n, a, y);
-}
-
-template <>
-void caffe_sqrt<double>(const int n, const double* a, double* y) {
-  vdSqrt(n, a, y);
-}
-
-template <>
 void caffe_exp<float>(const int n, const float* a, float* y) {
   vsExp(n, a, y);
 }
@@ -253,9 +244,16 @@ template
 double caffe_nextafter(const double b);
 
 template <typename Dtype>
-void caffe_rng_uniform(const int n, const Dtype a, const Dtype b, Dtype* r) {
+void caffe_rng_uniform(const int n, Dtype a, Dtype b, Dtype* r) {
   CHECK_GE(n, 0);
   CHECK(r);
+
+  // to press the fatal error due to a less than b
+  if(a > b) {
+    Dtype c = a;
+    a = b;
+    b = c;
+  }
   CHECK_LE(a, b);
   boost::uniform_real<Dtype> random_distribution(a, caffe_nextafter<Dtype>(b));
   boost::variate_generator<caffe::rng_t*, boost::uniform_real<Dtype> >

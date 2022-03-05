@@ -2,6 +2,7 @@
 @setlocal EnableDelayedExpansion
 
 if NOT DEFINED MSVC_VERSION set MSVC_VERSION=15
+if NOT DEFINED WITH_CUDA set WITH_CUDA=1
 if NOT DEFINED WITH_NINJA set WITH_NINJA=1
 if "%WITH_CUDA%"=="1" (
   if NOT DEFINED CPU_ONLY set CPU_ONLY=0
@@ -99,6 +100,8 @@ REM Add -DCUDNN_ROOT=C:/Projects/caffe/cudnn-8.0-windows10-x64-v5.1/cuda ^
 REM below to use cuDNN
 cmake -G"!CMAKE_GENERATOR!" ^
       -DBLAS=Open ^
+      -DCMAKE_C_COMPILER="C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64/cl.exe" ^
+      -DCMAKE_CXX_COMPILER="C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64/cl.exe" ^
       -DCMAKE_TOOLCHAIN_FILE:FILEPATH=%VCPKG_TOOLCHAIN% ^
       -DCMAKE_BUILD_TYPE:STRING=%CMAKE_CONFIG% ^
       -DBUILD_SHARED_LIBS:BOOL=%CMAKE_BUILD_SHARED_LIBS% ^
@@ -112,6 +115,7 @@ cmake -G"!CMAKE_GENERATOR!" ^
       -DUSE_NCCL:BOOL=!USE_NCCL! ^
       -DCUDA_ARCH_NAME:STRING=%CUDA_ARCH_NAME% ^
       -DUSE_HDF5_SHARED_LIBS=ON ^
+      -DCUDNN_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v9.2/cuda" ^
       "%~dp0\.."
 
 if ERRORLEVEL 1 (

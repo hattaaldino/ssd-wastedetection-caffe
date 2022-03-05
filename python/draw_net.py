@@ -53,6 +53,5 @@ def main():
     caffe.draw.draw_net_to_file(net, args.output_image_file, args.rankdir,
                                 phase)
 
-
 if __name__ == '__main__':
     main()

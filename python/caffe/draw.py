@@ -9,7 +9,6 @@ Caffe network visualization: draw the NetParameter protobuffer.
     Caffe.
 """
 
-import os
 from caffe.proto import caffe_pb2
 
 """
@@ -22,45 +21,19 @@ try:
 except ImportError:
     import pydot
 
-
-if os.name == 'nt':
-    # Workaround to find graphviz executables
-    # with graphviz conda package under windows
-
-    # Monkeypatch the pydot package
-    pydot_find_graphviz = pydot.graphviz.find_graphviz
-
-    def resolve_graphviz_executables():
-        """
-        Resolve the graphviz executables by adding a `graphviz` suffix
-        to folders located on path
-        """
-        # first check if we can find the executables the normal way
-        progs = pydot_find_graphviz()
-        if not progs:
-            directories = os.environ['PATH'].split(';')
-            suffix = 'graphviz'
-            progs = {}
-            for directory in directories:
-                for exe in ['dot', 'twopi', 'neato', 'circo', 'fdp']:
-                    full_path = os.path.join(directory, suffix,
-                                             '{}.exe'.format(exe))
-                    if os.path.exists(full_path):
-                        progs[exe] = full_path
-        return progs
-
-    pydot.graphviz.find_graphviz = resolve_graphviz_executables
-
 # Internal layer and blob styles.
 LAYER_STYLE_DEFAULT = {'shape': 'record',
-                       'fillcolor': '#6495ED',
-                       'style': 'filled'}
+                       'fillcolor': '#ADD8E6',
+                       'style': 'filled',
+                       'fontsize': 32}
 NEURON_LAYER_STYLE = {'shape': 'record',
                       'fillcolor': '#90EE90',
-                      'style': 'filled'}
+                      'style': 'filled',
+                      'fontsize': 32}
 BLOB_STYLE = {'shape': 'octagon',
               'fillcolor': '#E0E0E0',
-              'style': 'filled'}
+              'style': 'filled',
+              'fontsize': 32}
 
 
 def get_pooling_types_dict():
@@ -116,40 +89,48 @@ def get_layer_label(layer, rankdir):
     if layer.type == 'Convolution' or layer.type == 'Deconvolution':
         # Outer double quotes needed or else colon characters don't parse
         # properly
-        node_label = '"%s%s(%s)%skernel size: %d%sstride: %d%spad: %d"' %\
-                     (layer.name,
-                      separator,
-                      layer.type,
-                      separator,
-                      layer.convolution_param.kernel_size[0] if len(layer.convolution_param.kernel_size) else 1,
-                      separator,
-                      layer.convolution_param.stride[0] if len(layer.convolution_param.stride) else 1,
-                      separator,
-                      layer.convolution_param.pad[0] if len(layer.convolution_param.pad) else 0)
+        # node_label = '"%s%s(%s)%skernel size: %d%sstride: %d%spad: %d"' %\
+        #              (layer.name,
+        #               separator,
+        #               layer.type,
+        #               separator,
+        #               layer.convolution_param.kernel_size[0] if len(layer.convolution_param.kernel_size._values) else 1,
+        #               separator,
+        #               layer.convolution_param.stride[0] if len(layer.convolution_param.stride._values) else 1,
+        #               separator,
+        #               layer.convolution_param.pad[0] if len(layer.convolution_param.pad._values) else 0)
+        node_label = '"%s%s(%s)"' %\
+             (layer.name,
+              separator,
+              layer.type)
     elif layer.type == 'Pooling':
         pooling_types_dict = get_pooling_types_dict()
-        node_label = '"%s%s(%s %s)%skernel size: %d%sstride: %d%spad: %d"' %\
+    #     node_label = '"%s%s(%s %s)%skernel size: %d%sstride: %d%spad: %d"' %\
+    #                  (layer.name,
+    #                   separator,
+    #                   pooling_types_dict[layer.pooling_param.pool],
+    #                   layer.type,
+    #                   separator,
+    #                   layer.pooling_param.kernel_size,
+    #                   separator,
+    #                   layer.pooling_param.stride,
+    #                   separator,
+    #                   layer.pooling_param.pad)
+        node_label = '"%s%s(%s %s)"' %\
                      (layer.name,
                       separator,
                       pooling_types_dict[layer.pooling_param.pool],
-                      layer.type,
-                      separator,
-                      layer.pooling_param.kernel_size,
-                      separator,
-                      layer.pooling_param.stride,
-                      separator,
-                      layer.pooling_param.pad)
+                      layer.type)
     else:
         node_label = '"%s%s(%s)"' % (layer.name, separator, layer.type)
     return node_label
 
-
 def choose_color_by_layertype(layertype):
     """Define colors for nodes based on the layer type.
     """
-    color = '#6495ED'  # Default
+    color = '#ADD8E6'  # Default
     if layertype == 'Convolution' or layertype == 'Deconvolution':
-        color = '#FF5050'
+        color = '#FF6969'
     elif layertype == 'Pooling':
         color = '#FF9900'
     elif layertype == 'InnerProduct':
@@ -195,40 +176,70 @@ def get_pydot_graph(caffe_net, rankdir, label_edges=True, phase=None):
           if not included:
             continue
         node_label = get_layer_label(layer, rankdir)
-        node_name = "%s_%s" % (layer.name, layer.type)
-        if (len(layer.bottom) == 1 and len(layer.top) == 1 and
-           layer.bottom[0] == layer.top[0]):
-            # We have an in-place neuron layer.
-            pydot_nodes[node_name] = pydot.Node(node_label,
-                                                **NEURON_LAYER_STYLE)
-        else:
-            layer_style = LAYER_STYLE_DEFAULT
-            layer_style['fillcolor'] = choose_color_by_layertype(layer.type)
-            pydot_nodes[node_name] = pydot.Node(node_label, **layer_style)
-        for bottom_blob in layer.bottom:
-            pydot_nodes[bottom_blob + '_blob'] = pydot.Node('%s' % bottom_blob,
-                                                            **BLOB_STYLE)
-            edge_label = '""'
-            pydot_edges.append({'src': bottom_blob + '_blob',
-                                'dst': node_name,
-                                'label': edge_label})
-        for top_blob in layer.top:
-            pydot_nodes[top_blob + '_blob'] = pydot.Node('%s' % (top_blob))
+        # node_name = "%s_%s" % (layer.name, layer.type)
+        node_name = "%s" % (layer.name)
+        if node_name == "data":
+            pydot_nodes[node_name] = pydot.Node(node_label, **LAYER_STYLE_DEFAULT)
+            pydot_nodes["label"] = pydot.Node("label", **BLOB_STYLE)
             if label_edges:
                 edge_label = get_edge_label(layer)
             else:
                 edge_label = '""'
             pydot_edges.append({'src': node_name,
-                                'dst': top_blob + '_blob',
-                                'label': edge_label})
+                                'dst': "label"})
+        elif (len(layer.bottom) == 1 and len(layer.top) == 1 and
+           layer.bottom[0] == layer.top[0]):
+            # We have an in-place neuron layer.
+            pydot_nodes[node_name] = pydot.Node(node_label,
+                                                **NEURON_LAYER_STYLE)
+
+            for bottom_blob in layer.bottom:
+                pydot_edges.append({'src': bottom_blob,
+                                    'dst': node_name})
+            for top_blob in layer.top:
+                pydot_edges.append({'src': node_name,
+                                    'dst': top_blob})
+        else:
+            layer_style = LAYER_STYLE_DEFAULT
+            layer_style['fillcolor'] = choose_color_by_layertype(layer.type)
+            pydot_nodes[node_name] = pydot.Node(node_label, **layer_style)
+
+            """
+            Additional code from Hatta (Start)
+            """
+            for bottom_blob in layer.bottom:
+                bottom_node_name = "%s" % (bottom_blob)
+
+                pydot_edges.append({'src': bottom_node_name,
+                                    'dst': node_name})
+            """
+            Additional code from Hatta (End)
+            """
+
+        # for bottom_blob in layer.bottom:
+        #     pydot_nodes[bottom_blob + '_blob'] = pydot.Node('%s' % bottom_blob,
+        #                                                     **BLOB_STYLE)
+        #     edge_label = '""'
+        #     pydot_edges.append({'src': bottom_blob + '_blob',
+        #                         'dst': node_name,
+        #                         'label': edge_label})
+        # for top_blob in layer.top:
+        #     pydot_nodes[top_blob + '_blob'] = pydot.Node('%s' % (top_blob))
+        #     if label_edges:
+        #         edge_label = get_edge_label(layer)
+        #     else:
+        #         edge_label = '""'
+        #     pydot_edges.append({'src': node_name,
+        #                         'dst': top_blob + '_blob',
+        #                         'label': edge_label})
     # Now, add the nodes and edges to the graph.
     for node in pydot_nodes.values():
         pydot_graph.add_node(node)
     for edge in pydot_edges:
         pydot_graph.add_edge(
             pydot.Edge(pydot_nodes[edge['src']],
-                       pydot_nodes[edge['dst']],
-                       label=edge['label']))
+                       pydot_nodes[edge['dst']]))
+                       # label=edge['label']))
     return pydot_graph
 
 

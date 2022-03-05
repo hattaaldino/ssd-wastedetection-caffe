@@ -62,11 +62,11 @@ string SolverRegistry<Dtype>::SolverTypeListString() {
   return solver_types_str;
 }
 
-template <typename Dtype>
-SolverRegisterer<Dtype>::SolverRegisterer(
-    const string& type, Solver<Dtype>* (*creator)(const SolverParameter&)) {
-  SolverRegistry<Dtype>::AddCreator(type, creator);
-}
+// template <typename Dtype>
+// SolverRegisterer<Dtype>::SolverRegisterer(
+//     const string& type, Solver<Dtype>* (*creator)(const SolverParameter&)) {
+//   SolverRegistry<Dtype>::AddCreator(type, creator);
+// }
 
 INSTANTIATE_CLASS(SolverRegistry);
 INSTANTIATE_CLASS(SolverRegisterer);

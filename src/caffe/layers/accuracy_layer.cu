@@ -137,12 +137,5 @@ void AccuracyLayer<Dtype>::Forward_gpu(
   caffe_gpu_set(bottom[0]->count(), Dtype(0), bottom[0]->mutable_gpu_diff());
 }
 
-
-template <typename Dtype>
-void AccuracyLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (propagate_down[1]) {  NOT_IMPLEMENTED;  }
-}
-
 INSTANTIATE_LAYER_GPU_FUNCS(AccuracyLayer);
 }  // namespace caffe

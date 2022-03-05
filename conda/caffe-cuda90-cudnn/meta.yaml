@@ -12,21 +12,6 @@ requirements:
     - ninja # [win]
     - curl # [win]
     - {{ compiler('c') }} # [win]
-    - python
-    - numpy 1.15.*
-    - setuptools
-    - mkl >=2018
-    - mkl-include
-    - mkl-devel
-    - boost
-    - py-boost
-    - protobuf =3.5.2
-    - libprotobuf =3.5.2
-    - glog
-    - gflags
-    - libopencv
-    - hdf5 >=1.8,<1.9
-    - lmdb
 
   host:
     - python
@@ -50,7 +35,7 @@ requirements:
     - python
     - numpy >=1.15
     - mkl >=2018
-    #- cudatoolkit =9
+    #- cudatoolkit =11
     - boost
     - py-boost
     - protobuf =3.5.2
