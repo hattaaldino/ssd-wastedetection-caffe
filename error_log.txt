@@ -1,0 +1,7 @@
+6 errors detected in the compilation of "C:/Users/Hatta/Documents/Akademik Unsri/Final Test Process/Program v2/src/caffe/layers/accuracy_layer.cu".
+nvcc warning : The 'compute_35', 'compute_37', 'compute_50', 'sm_35', 'sm_37' and 'sm_50' architectures are deprecated, and may be removed in a future release (Use -Wno-deprecated-gpu-targets to suppress warning).
+accuracy_layer.cu
+CMake Error at cuda_compile_1_generated_accuracy_layer.cu.obj.Release.cmake:280 (message):
+  Error generating file C:/Users/Hatta/Documents/Akademik Unsri/Final Test
+  Process/Program
+  v2/build/src/caffe/CMakeFiles/cuda_compile_1.dir/layers/./cuda_compile_1_generated_accuracy_layer.cu.obj
