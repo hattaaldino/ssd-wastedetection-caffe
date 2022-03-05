@@ -1,0 +1,24 @@
+train_net: "models\\VGGNet\\wastedata\\SSD_512x512\\train.prototxt"
+test_net: "models\\VGGNet\\wastedata\\SSD_512x512_speed\\test.prototxt"
+test_iter: 125
+test_interval: 5000
+base_lr: 0.0001
+display: 10
+max_iter: 0
+lr_policy: "multistep"
+gamma: 0.1
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 0
+snapshot_prefix: "models\\VGGNet\\wastedata\\SSD_512x512\\VGG_wastedata_SSD_512x512"
+solver_mode: GPU
+device_id: 0
+debug_info: false
+snapshot_after_train: false
+test_initialization: true
+average_loss: 10
+stepvalue: 40000
+stepvalue: 60000
+iter_size: 0
+type: "SGD"
+
